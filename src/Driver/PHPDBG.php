@@ -47,6 +47,12 @@ class PHPDBG implements Driver
         phpdbg_start_oplog();
     }
 
+    private function getFiles() {
+        return array_filter(get_included_files(), function ($value, $key) {
+            return strpos(dirname($value), realpath(__DIR__.'/../../../../../src')) !== false;
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+
     /**
      * Stop collection of code coverage information.
      *
@@ -59,10 +65,10 @@ class PHPDBG implements Driver
         $dbgData = phpdbg_end_oplog();
 
         if ($fetchedLines == []) {
-            $sourceLines = phpdbg_get_executable();
+            $sourceLines = phpdbg_get_executable(['files' => $this->getFiles()]);
         } else {
             $newFiles = array_diff(
-                get_included_files(),
+                $this->getFiles(),
                 array_keys($fetchedLines)
             );
 
